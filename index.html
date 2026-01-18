@@ -228,10 +228,6 @@ const todayMonth = today.toISOString().slice(0,7);
     const j25 = parseInt(p[8]) || 0;
     const rowTotal = j24 + j25;
 
-    if (normalized.slice(0,7) === todayMonth && rowDate <= today) {
-      tMonth += rowTotal;
-    }
-
     if (filterDate && normalized !== filterDate) return;
     if (search && !p.join(' ').toLowerCase().includes(search)) return;
 
@@ -256,6 +252,8 @@ const todayMonth = today.toISOString().slice(0,7);
   summary2024.textContent = total2024.textContent = t24.toLocaleString();
   summary2025.textContent = total2025.textContent = t25.toLocaleString();
   summaryAll.textContent  = totalAll.textContent  = tAll.toLocaleString();
+  tMonth = tAll;
+
 
   runMonth.textContent = tMonth.toLocaleString();
   targetMonth.textContent = TARGET_BULAN.toLocaleString();
