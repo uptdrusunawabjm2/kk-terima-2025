@@ -241,8 +241,8 @@ async function loadData() {
     const normalized = normalizeDate(sheetDate);
     const rowDate = new Date(normalized);
 
-    const j24 = parseInt(p[6]) || 0;
-    const j25 = parseInt(p[8]) || 0;
+    const j24 = parseInt((p[6]||'0').replace(/[^0-9]/g,'')) || 0;
+    const j25 = parseInt((p[8]||'0').replace(/[^0-9]/g,'')) || 0;
     const rowTotal = j24 + j25;
 
     if (normalized.slice(0,7) === todayMonth && rowDate <= today) {
@@ -274,7 +274,7 @@ async function loadData() {
   summary2025.textContent = total2025.textContent = t25.toLocaleString();
   summaryAll.textContent  = totalAll.textContent  = tAll.toLocaleString();
 
-  runMonth.textContent = tMonth.toLocaleString();
+  runMonth.textContent = tAll.toLocaleString();
   targetMonth.textContent = TARGET_BULAN.toLocaleString();
 
   const persen = TARGET_BULAN ? (tMonth / TARGET_BULAN * 100) : 0;
