@@ -87,7 +87,7 @@ tfoot td {
 <body>
 
 <h2>Kertas Kerja Penerimaan</h2>
-<h4>PERIODE 2025</h4>
+<h4>Periode 31 Desember 2025 (closed)</h4>
 
 <div class="sticky-header">
   <div class="summary">
@@ -214,7 +214,7 @@ const todayMonth = today.toISOString().slice(0,7);
     'Realisasi (' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear() + ')';
 
   runMonthNote.textContent =
-    'Realtime per hari ini: ' + today.getDate() + ' ' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear();
+    'Per tanggal: ' + today.getDate() + ' ' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear();
 
   rows.forEach(r=>{
     if(!r.trim()) return;
