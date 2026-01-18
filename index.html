@@ -199,8 +199,16 @@ async function loadData() {
   const search = searchInput.value.toLowerCase();
   const filterDate = dateFilter.value;
 
-  const today = new Date();
-  const todayMonth = today.toISOString().slice(0,7);
+  const realEndDate = new Date('2025-12-31');
+let today = new Date();
+
+// Jika sudah lewat 31 Desember 2025, kunci ke 31 Desember 2025
+if (today > realEndDate) {
+  today = realEndDate;
+}
+
+const todayMonth = today.toISOString().slice(0,7);
+
 
   runMonthTitle.textContent =
     'Realisasi (' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear() + ')';
