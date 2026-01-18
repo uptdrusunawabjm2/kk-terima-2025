@@ -190,6 +190,11 @@ function safeText(str) {
     .replace(/'/g,"&#039;");
 }
 
+function toNumber(val){
+  if(!val) return 0;
+  return Number(String(val).replace(/[^0-9-]/g,'')) || 0;
+}
+
 /* ===== API ===== */
 async function loadCSV() {
   const API_URL = "https://script.google.com/macros/s/AKfycbwrYJaeNxdQnWHJ5vA5eL8O5XnuaVqBfNtCf2Oe0MlO0j4QZMITWICNWbNGfuNQG4qO1g/exec";
@@ -231,7 +236,8 @@ async function loadData() {
   const todayMonth = today.toISOString().slice(0,7);
 
   runMonthTitle.textContent = 'Realisasi (' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear() + ')';
-  runMonthNote.textContent  = 'Per hari ini: ' + today.getDate() + ' ' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear();
+  runMonthNote.textContent  = 'Per 31 Desember 2025';
+
 
   rows.forEach(r=>{
     if(!r.trim()) return;
@@ -241,8 +247,8 @@ async function loadData() {
     const normalized = normalizeDate(sheetDate);
     const rowDate = new Date(normalized);
 
-    const j24 = parseInt((p[6]||'0').replace(/[^0-9]/g,'')) || 0;
-    const j25 = parseInt((p[8]||'0').replace(/[^0-9]/g,'')) || 0;
+    const j24 = toNumber(p[6]);
+    const j25 = toNumber(p[8]);
     const rowTotal = j24 + j25;
 
     if (normalized.slice(0,7) === todayMonth && rowDate <= today) {
@@ -277,8 +283,10 @@ async function loadData() {
   runMonth.textContent = tAll.toLocaleString();
   targetMonth.textContent = TARGET_BULAN.toLocaleString();
 
-  const persen = TARGET_BULAN ? (tMonth / TARGET_BULAN * 100) : 0;
-  percentAch.textContent = persen.toFixed(2) + ' %';
+// Persentase = Realisasi (Total) vs Target
+const persen = TARGET_BULAN > 0 ? (tAll / TARGET_BULAN * 100) : 0;
+percentAch.textContent = persen.toFixed(2) + ' %';
+
 
   if (filterDate) {
     const d = new Date(filterDate);
