@@ -1,2 +1,0 @@
-# kk-terima
-tes
