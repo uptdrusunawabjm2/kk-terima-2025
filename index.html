@@ -126,47 +126,51 @@ async function loadCSV() {
   return text;
 }
 
+function toNumber(val){
+  if(!val) return 0;
+  return Number(String(val).replace(/[^0-9-]/g,'')) || 0;
+}
+
 async function loadPublic() {
   const csv = await loadCSV();
   const rows = csv.trim().split('\n').slice(1);
 
-  let t24=0, t25=0, tAll=0, tMonth=0;
-
-  const today = new Date();
-  const todayMonth = today.toISOString().slice(0,7);
+  let t24=0, t25=0, tAll=0;
 
   rows.forEach(r=>{
     const p = r.split(',');
-    const [d,m,y] = p[0].split('/');
-    const normalized = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
 
-    const j24 = parseInt((p[6]||'0').replace(/[^0-9]/g,'')) || 0;
-    const j25 = parseInt((p[8]||'0').replace(/[^0-9]/g,'')) || 0;
-    const rowTotal = j24+j25;
+    const j24 = toNumber(p[6]);
+    const j25 = toNumber(p[8]); 
+    const rowTotal = j24 + j25;
 
-    if (normalized.slice(0,7) === todayMonth) {
-      tMonth += rowTotal;
-    }
-
-    t24+=j24; t25+=j25; tAll+=rowTotal;
+    t24 += j24;
+    t25 += j25;
+    tAll += rowTotal;
   });
 
+  // tampilkan total
   summary2024.textContent = t24.toLocaleString();
   summary2025.textContent = t25.toLocaleString();
   summaryAll.textContent  = tAll.toLocaleString();
 
+  // Realisasi = Total
   runMonth.textContent = tAll.toLocaleString();
-  targetMonth.textContent = TARGET_BULAN.toLocaleString();
 
-  const persen = TARGET_BULAN ? (tMonth / TARGET_BULAN * 100) : 0;
+  // ==============================
+  // PERSENTASE DIKUNCI DARI CARD TOTAL (ANTI 0%)
+  // ==============================
+  const realisasiFix = toNumber(summaryAll.textContent);
+  const persen = TARGET_BULAN > 0 ? (realisasiFix / TARGET_BULAN * 100) : 0;
   percentAch.textContent = persen.toFixed(2) + ' %';
 
-  runMonthTitle.textContent = 'Realisasi ('+bulanIndo[today.getMonth()]+' '+today.getFullYear()+')';
+  // catatan dikunci
   runMonthNote.textContent = 'Per 31 Desember 2025';
 }
 
 window.onload = loadPublic;
 </script>
+
 
 </body>
 </html>
