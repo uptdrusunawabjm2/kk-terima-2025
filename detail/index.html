@@ -10,7 +10,9 @@ body {
   margin: 0;
   background: #1e1e1e;
   color: #ddd;
+  overflow: hidden;   /* agar halaman tidak ikut scroll */
 }
+
 h2, h4 { text-align: center; margin: 8px 0; }
 h4 { font-weight: normal; color: #bbb; }
 
@@ -48,7 +50,11 @@ h4 { font-weight: normal; color: #bbb; }
   display: flex;
   gap: 8px;
   justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
 }
+
 input, button {
   padding: 8px;
   border-radius: 5px;
@@ -71,9 +77,8 @@ th, td {
 th {
   background: #333;
   color: #ffcc00;
-  position: sticky;
-  top: 0;
 }
+
 tfoot td {
   background: #333;
   color: #ffcc00;
@@ -81,6 +86,78 @@ tfoot td {
   position: sticky;
   bottom: 0;
 }
+
+.pagination {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  background:#252525;
+  position: sticky;
+  bottom: 0;
+}
+
+.row-cek {
+  background: #5a1a1a !important;
+  color: #ffd6d6;
+  font-weight: bold;
+}
+.cek-highlight {
+  background: #ff3b3b !important;
+  color: #ffffff !important;
+  font-weight: 900;
+  letter-spacing: .3px;
+}
+
+#dateStart, 
+#dateEnd {
+  border: 2px solid #3b82f6;
+}
+
+.date-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.date-wrap input[type="date"] {
+  padding: 10px 8px 4px 8px; 
+  height: 34px;
+  box-sizing: border-box;
+}
+
+.date-label {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* ===== SCROLL AREA TABEL ===== */
+.table-scroll {
+  height: calc(100vh - 260px); /* sesuaikan jika perlu */
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Header tabel sticky DI DALAM scroll */
+.table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #333;
+}
+
+/* Footer tetap bawah scroll */
+.table-scroll tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+}
+
 </style>
 </head>
 
@@ -97,11 +174,11 @@ tfoot td {
       <small>Penerimaan Piutang 2024</small>
     </div>
     
-      <div class="card">
-        <h3>Total 2025</h3>
-        <p id="summary2025">0</p>
-        <small>Penerimaan 2025</small>
-      </div>
+    <div class="card">
+      <h3>Total 2025</h3>
+      <p id="summary2025">0</p>
+      <small>Penerimaan 2025</small>
+    </div>
 
     <div class="card">
       <h3>Total</h3>
@@ -111,14 +188,14 @@ tfoot td {
 
     <div class="card target">
       <h3>Target Tahun 2025</h3>
-      <p id="targetMonth">680.000.000</p>
+      <p id="targetMonth">700.000.000</p>
       <small>Target</small>
     </div>
 
     <div class="card realisasi">
-      <h3 id="runMonthTitle">Realisasi</h3>
+      <h3 id="runMonthTitle">Realisasi (Kumulatif)</h3>
       <p id="runMonth">0</p>
-      <small id="runMonthNote"></small>
+      <small id="runMonthNote">Total 2024 + 2025</small>
     </div>
 
     <div class="card persen">
@@ -129,44 +206,71 @@ tfoot td {
   </div>
 
   <div class="filter-bar">
-    <input type="text" id="searchInput" placeholder="Cari data..." oninput="loadData()">
-    <input type="date" id="dateFilter" onchange="loadData()">
-    <button onclick="resetFilter()">Reset</button>
+  <input type="text" id="searchInput" placeholder="Cari data..." oninput="loadData()">
+  <input type="date" id="dateFilter" onchange="loadData()">
+  <button onclick="resetFilter()">Reset</button>
+  <button onclick="refreshData()">Refresh</button>
+
+  <!-- RANGE TANGGAL -->
+  <div class="date-wrap">
+  <span class="date-label">Mulai</span>
+  <input type="date" id="dateStart" onchange="loadData()">
   </div>
+
+<div class="date-wrap">
+  <span class="date-label">Sampai</span>
+  <input type="date" id="dateEnd" onchange="loadData()">
 </div>
 
-<table>
-<thead>
-<tr>
-  <th>No</th>
-  <th>Tanggal</th>
-  <th>No Ref IBB</th>
-  <th>STS</th>
-  <th>Nama</th>
-  <th>Unit</th>
-  <th>Periode 2024</th>
-  <th>Jumlah 2024</th>
-  <th>Periode 2025</th>
-  <th>Jumlah 2025</th>
-  <th>Total</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-<tfoot>
-<tr>
-  <td colspan="7">TOTAL</td>
-  <td id="total2024">0</td>
-  <td></td>
-  <td id="total2025">0</td>
-  <td id="totalAll">0</td>
-</tr>
-</tfoot>
-</table>
+</div>
+
+<div class="table-scroll">
+  <table>
+  <thead>
+  <tr>
+    <th>No</th>
+    <th>Tanggal</th>
+    <th>No Ref IBB</th>
+    <th>STS</th>
+    <th>Nama</th>
+    <th>Unit</th>
+    <th>Periode 2024</th>
+    <th>Jumlah 2024</th>
+    <th>Periode 2025</th>
+    <th>Jumlah 2025</th>
+    <th>Total</th>
+  </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+  <tfoot>
+  <tr>
+    <td colspan="7">TOTAL</td>
+    <td id="total2024">0</td>
+    <td></td>
+    <td id="total2025">0</td>
+    <td id="totalAll">0</td>
+  </tr>
+  </tfoot>
+  </table>
+</div>
+
+<div class="pagination">
+  <button onclick="prevPage()">« Prev</button>
+  <span id="pageInfo">Halaman 1</span>
+  <button onclick="nextPage()">Next »</button>
+</div>
 
 <script>
 const TARGET_BULAN = 680000000;
+const ROWS_PER_PAGE = 25;
 
-/* ===== UTIL ===== */
+let allFilteredRows = [];
+let currentPage = 1;
+
+let CSV_CACHE = null;
+let CACHE_TIME = 0;
+const CACHE_TTL = 3 * 60 * 1000; // 3 menit
+
 const bulanIndo = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
 function formatTanggalIndo(ddmmyyyy) {
@@ -190,13 +294,13 @@ function safeText(str) {
     .replace(/'/g,"&#039;");
 }
 
-function toNumber(val){
-  if(!val) return 0;
-  return Number(String(val).replace(/[^0-9-]/g,'')) || 0;
-}
+async function loadCSV(forceRefresh = false) {
+  const now = Date.now();
 
-/* ===== API ===== */
-async function loadCSV() {
+    if (!forceRefresh && CSV_CACHE && (now - CACHE_TIME < CACHE_TTL)) {
+    return CSV_CACHE;
+  }
+
   const API_URL = "https://script.google.com/macros/s/AKfycbwrYJaeNxdQnWHJ5vA5eL8O5XnuaVqBfNtCf2Oe0MlO0j4QZMITWICNWbNGfuNQG4qO1g/exec";
   const API_KEY = "RUSUN2025";
 
@@ -213,10 +317,9 @@ async function loadCSV() {
 
   const text = await res.text();
 
-  if (text.startsWith("{")) {
-    console.error(text);
-    throw new Error("API ditolak");
-  }
+  // Simpan ke cache
+  CSV_CACHE = text;
+  CACHE_TIME = now;
 
   return text;
 }
@@ -225,48 +328,83 @@ async function loadData() {
   const csv = await loadCSV();
   const rows = csv.trim().split('\n').slice(1);
 
-  tbody.innerHTML = '';
+  allFilteredRows = [];
+  currentPage = 1;
 
-  let t24=0, t25=0, tAll=0, tMonth=0, no=1;
+  let t24=0, t25=0, tAll=0, tMonth=0;
 
   const search = searchInput.value.toLowerCase();
   const filterDate = dateFilter.value;
+  const dateStart = document.getElementById("dateStart").value;
+  const dateEnd   = document.getElementById("dateEnd").value;
 
   const today = new Date();
   const todayMonth = today.toISOString().slice(0,7);
-
-  runMonthTitle.textContent = 'Realisasi (' + bulanIndo[today.getMonth()] + ' ' + today.getFullYear() + ')';
-  runMonthNote.textContent  = 'Per 31 Desember 2025';
-
 
   rows.forEach(r=>{
     if(!r.trim()) return;
     const p = parseCSVLine(r);
 
-    const sheetDate = p[0];
-    const normalized = normalizeDate(sheetDate);
+    const normalized = normalizeDate(p[0]);
     const rowDate = new Date(normalized);
 
-    const j24 = toNumber(p[6]);
-    const j25 = toNumber(p[8]);
+    const j24 = parseInt(p[6]) || 0;
+    const j25 = parseInt(p[8]) || 0;
     const rowTotal = j24 + j25;
 
     if (normalized.slice(0,7) === todayMonth && rowDate <= today) {
       tMonth += rowTotal;
     }
 
+    // FILTER TANGGAL TUNGGAL
     if (filterDate && normalized !== filterDate) return;
+
+    // FILTER RANGE
+    if (dateStart && normalized < dateStart) return;
+    if (dateEnd && normalized > dateEnd) return;
+
     if (search && !p.join(' ').toLowerCase().includes(search)) return;
 
-    t24+=j24; t25+=j25; tAll+=rowTotal;
+    t24+=j24; 
+    t25+=j25; 
+    tAll+=rowTotal;
+    allFilteredRows.push(p);
+  });
+
+  summary2024.textContent = total2024.textContent = t24.toLocaleString();
+  summary2025.textContent = total2025.textContent = t25.toLocaleString();
+  summaryAll.textContent  = totalAll.textContent  = tAll.toLocaleString();
+
+  runMonth.textContent = tAll.toLocaleString();
+
+  const persen = TARGET_BULAN ? (tAll / TARGET_BULAN * 100) : 0;
+  percentAch.textContent = persen.toFixed(2) + ' %';
+
+  renderTable();
+}
+
+function renderTable(){
+  tbody.innerHTML = "";
+
+  const start = (currentPage-1)*ROWS_PER_PAGE;
+  const pageRows = allFilteredRows.slice(start, start+ROWS_PER_PAGE);
+
+  let no = start+1;
+
+  pageRows.forEach(p=>{
+    const j24 = parseInt(p[6]) || 0;
+    const j25 = parseInt(p[8]) || 0;
+    const rowTotal = j24 + j25;
+
+    const isCek = (p[3] || "").toLowerCase().includes("cek");
 
     tbody.innerHTML += `
-<tr>
+<tr class="${isCek ? 'row-cek' : ''}">
   <td>${no++}</td>
-  <td>${formatTanggalIndo(sheetDate)}</td>
+  <td>${formatTanggalIndo(p[0])}</td>
   <td>${safeText(p[1])}</td>
   <td>${safeText(p[2])}</td>
-  <td>${safeText(p[3])}</td>
+  <td class="${isCek ? 'cek-highlight' : ''}">${safeText(p[3])}</td>
   <td>${safeText(p[4])}</td>
   <td>${safeText(p[5])}</td>
   <td>${j24.toLocaleString()}</td>
@@ -276,33 +414,46 @@ async function loadData() {
 </tr>`;
   });
 
-  summary2024.textContent = total2024.textContent = t24.toLocaleString();
-  summary2025.textContent = total2025.textContent = t25.toLocaleString();
-  summaryAll.textContent  = totalAll.textContent  = tAll.toLocaleString();
+  const totalPage = Math.max(1, Math.ceil(allFilteredRows.length / ROWS_PER_PAGE));
+  pageInfo.textContent = `Halaman ${currentPage} dari ${totalPage}`;
+}
 
-  runMonth.textContent = tAll.toLocaleString();
-  targetMonth.textContent = TARGET_BULAN.toLocaleString();
-
-// Persentase = Realisasi (Total) vs Target
-const persen = TARGET_BULAN > 0 ? (tAll / TARGET_BULAN * 100) : 0;
-percentAch.textContent = persen.toFixed(2) + ' %';
-
-
-  if (filterDate) {
-    const d = new Date(filterDate);
-    totalDateNote.textContent = 'Total per tanggal: ' + d.getDate() + ' ' + bulanIndo[d.getMonth()] + ' ' + d.getFullYear();
-  } else {
-    totalDateNote.textContent = 'Total keseluruhan';
+function nextPage(){
+  if(currentPage * ROWS_PER_PAGE < allFilteredRows.length){
+    currentPage++;
+    renderTable();
+  }
+}
+function prevPage(){
+  if(currentPage > 1){
+    currentPage--;
+    renderTable();
   }
 }
 
 function resetFilter(){
   searchInput.value='';
   dateFilter.value='';
+  document.getElementById("dateStart").value='';
+  document.getElementById("dateEnd").value='';
+  loadData();
+}
+
+function refreshData(){
+  CSV_CACHE = null;
   loadData();
 }
 
 window.onload = loadData;
+
+setInterval(async () => {
+  CSV_CACHE = null;
+  const oldPage = currentPage;
+  await loadData();
+  currentPage = oldPage;
+  renderTable();
+}, CACHE_TTL);
+
 </script>
 
 </body>
